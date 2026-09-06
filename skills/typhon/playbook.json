@@ -1,0 +1,4 @@
+{
+  "_doc": "Typhon routing priors: task_type -> plan -> running stats. Updated by learn.py (record/recommend/show). External evidence outranks self-scores. Never silently mix sources.",
+  "by_type": {}
+}
