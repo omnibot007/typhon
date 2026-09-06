@@ -12,15 +12,54 @@ Novelty-Search / Quality-Diversity literature:
   3. select_diverse(candidates, k)    — greedy max-min pick of k maximally-different candidates.
                                         (MAP-Elites-style: keep a spread, not k near-duplicates.)
 
-ponytail: distance is LEXICAL (character n-gram Jaccard) — zero dependencies, runs anywhere.
-          Ceiling: it measures *surface* novelty, not *semantic* novelty ("a heap" vs "a priority
-          queue" look different lexically but a paraphrase can fool it). Upgrade path: swap
-          `distance()` for `1 - cosine(embed(a), embed(b))` using any sentence-embedding model;
-          every other function is distance-agnostic and needs no change.
+ponytail: distance is LEXICAL (character n-gram Jaccard) by default — zero dependencies,
+          runs anywhere, deterministic. Set TYPHON_EMBEDDINGS=1 with model2vec installed
+          to use embedding cosine instead (semantic novelty: paraphrases read as CLOSE).
+          Report distance_backend() alongside every score; never assume which metric ran.
+          Ceiling (lexical): measures *surface* novelty — a pure-paraphrase set scores
+          ~0.69 and clears naive 0.5 gates. Treat the gate as a tripwire, not proof.
+TYPHON hardening: optional embedding backend + backend reporter. Diverges from upstream;
+          everything else below is verbatim.
 """
 
 from __future__ import annotations
 from itertools import combinations
+
+_EMBED_MODEL = None
+
+
+def _embed_model():
+    """Optional semantic backend, loaded once. Active only when TYPHON_EMBEDDINGS=1
+    and model2vec is importable; otherwise None (lexical default)."""
+    import os
+    if os.environ.get("TYPHON_EMBEDDINGS") != "1":
+        return None
+    global _EMBED_MODEL
+    if _EMBED_MODEL is None:
+        try:
+            from model2vec import StaticModel
+        except ImportError:
+            return None
+        _EMBED_MODEL = StaticModel.from_pretrained("minishlab/potion-base-8M")
+    return _EMBED_MODEL
+
+
+def distance_backend() -> str:
+    """Which metric distance() is using RIGHT NOW. Print it with every score."""
+    return "embedding:potion-base-8M" if _embed_model() else "lexical:char-4gram-jaccard"
+
+
+def _embed_distance(a: str, b: str) -> float:
+    """1 - cosine over static embeddings. Pure-stdlib math (no numpy needed)."""
+    import math
+    m = _embed_model()
+    va, vb = (list(v) for v in m.encode([a, b]))
+    dot = sum(x * y for x, y in zip(va, vb))
+    na = math.sqrt(sum(x * x for x in va))
+    nb = math.sqrt(sum(y * y for y in vb))
+    if na == 0 or nb == 0:
+        return 0.0 if a == b else 1.0
+    return 1.0 - (dot / (na * nb))
 
 
 def _ngrams(text: str, n: int = 4) -> set[str]:
@@ -32,8 +71,10 @@ def _ngrams(text: str, n: int = 4) -> set[str]:
 
 
 def distance(a: str, b: str, n: int = 4) -> float:
-    """1 - Jaccard(n-grams). 0.0 == identical, 1.0 == no shared n-grams. The single swap point
-    for a semantic upgrade (replace with embedding cosine distance)."""
+    """1 - Jaccard(n-grams), or 1 - cosine when the embedding backend is active.
+    0.0 == identical, 1.0 == nothing shared. Check distance_backend()."""
+    if _embed_model() is not None:
+        return _embed_distance(a, b)
     ga, gb = _ngrams(a, n), _ngrams(b, n)
     if not ga and not gb:
         return 0.0
@@ -110,6 +151,7 @@ if __name__ == "__main__":
     assert len(picks) == 2 and len(set(picks)) == 2
 
     print("novelty.py self-check passed:",
+          f"backend={distance_backend()}",
           f"div(distinct)={set_diversity(distinct_set):.3f}",
           f"div(paraphrase)={set_diversity(paraphrase_set):.3f}",
           f"diverse-2 picks={picks}")

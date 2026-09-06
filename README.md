@@ -73,6 +73,12 @@ Key results reproduced from its benchmark (DAT spine, deterministic scorer, comm
   (Upstream headline rounds this to ~9x; the measured coverage ratio is 7x.)
 - Differential testing: ~28x fewer shipped bugs at k=7 vs k=1 (upstream figure,
   not locally reproduced; the bundled helper is a diagnostic, not an oracle).
+  TYPHON hardening (this repo): type-preserving votes, ties and unanimous errors
+  resolve to INCONCLUSIVE, wrong majorities are reported with named suspects --
+  all covered by runnable regression asserts in `diff_test.py`.
+- Novelty gate: lexical default passes pure paraphrases (0.693 -- known hole);
+  optional embedding backend (`TYPHON_EMBEDDINGS=1`) rejects them (0.279) while
+  distinct sets hold (0.775). Measured on the maintainer box.
 
 ## License
 

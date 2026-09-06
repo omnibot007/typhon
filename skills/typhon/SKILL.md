@@ -17,8 +17,9 @@ Resolve this skill's absolute directory before invoking its bundled Python files
 
 Credit: engine adapted from `SritejBommaraju/divergent-agents` (MIT, 2026).
 Bundled `novelty.py`, `diff_test.py`, `modes.json`, and `learn.py` derive from that project.
-On-top additions (grader verify, cheap-model mapping, ledger archive, stakes gate,
-router wiring) are ours. Preserve all MIT notices and upstream attribution.
+`modes.json` and `learn.py` are verbatim; `novelty.py` and `diff_test.py` carry TYPHON
+hardening (typed votes, inconclusive states, optional embedding backend -- see file
+headers for the delta). Preserve all MIT notices and upstream attribution.
 Full method: https://github.com/SritejBommaraju/divergent-agents/blob/main/METHOD.md
 
 Evidence scope: the maintainer reports reproducing upstream DAT p=0.84
@@ -71,6 +72,10 @@ Run from the resolved skill directory, replacing placeholders with absolute scra
 python -B -c "import json,novelty,sys; c=json.load(open(sys.argv[1],encoding='utf-8')); a=json.load(open(sys.argv[2],encoding='utf-8')); d=novelty.set_diversity(c); print('set_diversity',d,'gate',d>=0.5); print('archive',[novelty.novelty_vs_archive(x,a) for x in c]); print('spread_indices',novelty.select_diverse(c,3))" "<SCRATCH>/cands.json" "<SCRATCH>/archive.json"
 ```
 Keep the 0.5 threshold as an uncalibrated lexical tripwire, not proof of structural novelty.
+Measured on the maintainer box: a pure-paraphrase set scores 0.693 here (PASSES --
+the known hole). With TYPHON_EMBEDDINGS=1 and model2vec installed, the same set
+scores 0.279 (correctly REJECTED) while a truly distinct set holds 0.775. Prefer the
+embedding backend whenever available; report distance_backend() with every score.
 Below it, regenerate within the budget. Above it, still reject structural duplicates;
 a high set average cannot excuse a duplicate pair. Never pad wording to raise the score.
 Keep up to three distinct survivors using the returned indices, preserving their IDs.
