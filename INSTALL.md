@@ -18,9 +18,11 @@ Or point your `opencode.json` skills paths at this repo's `skills/` directory.
 
 ## Requirements
 
-- Python 3.10+ with `numpy` for the novelty gate; `model2vec` for the full embedding ensemble:
-  `pip install model2vec numpy`
-- Without the embedding models, the gate degrades to lexical checks inside `novelty.py`. Still better than vibes.
+- Python 3.10+. The bundled helpers (`novelty.py`, `diff_test.py`, `learn.py`)
+  are standard-library only: no install needed to run the gates.
+- The upstream full-ensemble scorer optionally uses `model2vec` embeddings;
+  that is upstream's rig, not this skill's requirement. Do not install it
+  for TYPHON.
 
 ## Verify the install
 

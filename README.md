@@ -68,7 +68,11 @@ Engine adapted from [SritejBommaraju/divergent-agents](https://github.com/Sritej
 Key results reproduced from its benchmark (DAT spine, deterministic scorer, committed raw data):
 - Prompting "be divergent": delta -0.074, p=0.84 (null).
 - Archive mechanism: delta +0.229, p<0.0001 (significant).
-- Best-of-N collapses to one algorithm; forced lenses yield ~9x distinct correct solutions.
+- Best-of-N collapses (mean 1.33 distinct); forced lenses yield 9.33 distinct
+  correct algorithms -- 7x solution-space coverage, correctness 30/30.
+  (Upstream headline rounds this to ~9x; the measured coverage ratio is 7x.)
+- Differential testing: ~28x fewer shipped bugs at k=7 vs k=1 (upstream figure,
+  not locally reproduced; the bundled helper is a diagnostic, not an oracle).
 
 ## License
 
