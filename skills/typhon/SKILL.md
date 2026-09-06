@@ -112,10 +112,14 @@ Use five structurally different implementations, including a small reference che
 against independent examples/properties; record the random seed and edge-case inputs.
 Run generated code only in an approved isolated environment; a temporary directory
 and subprocess timeout are NOT a sandbox. No suitable runner means NOT RUN.
-Treat diff_test.py as a disagreement diagnostic, never a shipping oracle: its current
-string conversion loses types and its exception sentinel can receive unanimous votes.
-Independently check typed outputs and reference properties; reject ties, unexpected
-exceptions, missing candidates, malformed results, and empty test sets as inconclusive.
+Treat diff_test.py as a disagreement diagnostic, never a shipping oracle. Hardened
+behavior (covered by runnable asserts): type-preserving votes (1 vs "1" disagree),
+ties and unanimous errors resolve to INCONCLUSIVE, empty input sets error, and a
+wrong majority is reported with named suspects instead of silently shipped. Still
+not a sandbox (tempdir + timeout only) and still blind to shared misconceptions:
+independently check typed outputs and reference properties; reject unexpected
+exceptions, missing candidates, malformed results, and empty test sets as
+inconclusive.
 Investigate disagreements against the spec, not by outvoting the reference.
 Select and rerun one actual implementation; a list of consensus outputs is not a program.
 Agreement does not rule out a shared misconception. No ~28x claim from this run.
